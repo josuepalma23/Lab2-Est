@@ -48,7 +48,15 @@ print()
 #         Pista: .head(20) — igual que la demo de clase.
 #         Después de correrlo, mira la composición por ciudad que imprime el
 #         reporte: ¿es un corte al azar? ¿alguna ciudad falta por completo?
-muestra_conv = None
+muestra_conv = poblacion.head(20)
+print(muestra_conv)
+
+'''
+al hacer head(20) estoy cayendo en un sesgo de selección, puesto que 
+al mirar el archivo, me puedo dar cuenta que hay más registros de Quito que de
+cualquier otra ciudad, si uso head(20) estoy eligiendo solo ver datos de Quito
+'''
+
 
 # ---------------------------------------------------------------------------
 # 3. Muestra aleatoria simple: el sorteo de 20
@@ -56,9 +64,18 @@ muestra_conv = None
 # TODO 2: sortea 20 clientes con la misma probabilidad para todos (20/400 = 5 %).
 #         Pista: .sample(20, random_state=1). Con random_state el resultado es
 #         reproducible; sin él cambia en cada ejecución.
+muestra_aas = poblacion.sample(20, random_state=1)
+print(muestra_aas)
+
 # TODO 3: repite el sorteo con las semillas 2 a 5 y anota las 5 medias en el
 #         informe: la variabilidad de la estimación es parte de la lección.
-muestra_aas = None
+
+for semilla in range(1, 6):
+    muestra = poblacion.sample(20, random_state=semilla)
+    media_ingresos = muestra["ingresos_mensuales"].mean()
+    media_satisfaccion = muestra["satisfaccion"].mean()
+    print(f"Semilla {semilla}: media de ingresos = {media_ingresos:.2f}\n")
+    print(f"Semilla {semilla}: media de satisfaccion = {media_satisfaccion:.2f}\n")
 
 # ---------------------------------------------------------------------------
 # 4. Muestra estratificada: 5 % dentro de cada ciudad
@@ -68,7 +85,14 @@ muestra_aas = None
 #         Cuenca (20 en total).
 #         Pista: .groupby("ciudad") y .sample(frac=0.05, random_state=1).
 #         ¿Qué garantiza este diseño que el sorteo simple no garantiza?
-muestra_est = None
+muestra_est = poblacion.groupby("ciudad", group_keys=False).sample(frac=0.05, random_state=1)
+
+print(muestra_est["ciudad"].value_counts())
+
+'''
+Este diseño nos garantiza que la muestra conserve las proporciones reales de la
+población para cada estrato, lo que evita que una ciudad salga más que otra por tener mas datos
+'''
 
 # ---------------------------------------------------------------------------
 # 5. Comparación final
