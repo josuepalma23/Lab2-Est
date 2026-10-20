@@ -31,7 +31,17 @@ print()
 # TODO 1: ¿qué columnas llegan como número y cuáles como texto? Anótalo para el
 #         informe. Ojo con satisfaccion: llega como número y es ordinal
 #         ("4 no es el doble de 2") — la justificación va en el informe.
-
+# - columnas que llegan como número (int64 / float64):
+#     • cliente_id (int64)
+#     • edad (int64)
+#     • numero_hijos (int64)
+#     • ingresos_mensuales (float64)
+#     • satisfaccion (int64): llega como entero (1 a 5), pero es categórica ordinal.
+#       justificación: "4 no es el doble de 2", representa un nivel subjetivo de satisfacción y no una cantidad medible.
+# - columnas que llegan como texto (object):
+#     • genero (object)
+#     • nivel_educacion (object)
+#     • ciudad (object)
 # ---------------------------------------------------------------------------
 # 3. Valores únicos — ¿cuántas categorías hay y cuáles son?
 # ---------------------------------------------------------------------------
