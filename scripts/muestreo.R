@@ -7,7 +7,9 @@
 #
 # Uso (desde la raíz del repositorio):  Rscript scripts/muestreo.R
 
-poblacion <- read.csv("data/clientes_400.csv")
+suppressPackageStartupMessages(library(dplyr))
+
+poblacion <- read.csv("data/clientes_400.csv", stringsAsFactors = FALSE)
 
 reporte <- function(nombre, muestra, parametro) {
   # Imprime n, media estimada y composición por ciudad de una muestra.
@@ -33,6 +35,7 @@ cat(sprintf("Población: %d clientes × %d columnas\n", nrow(poblacion), ncol(po
 parametro <- mean(poblacion$ingresos_mensuales)
 cat(sprintf("Parámetro poblacional — ingreso medio: %.2f USD\n", parametro))
 cat("Ciudades en la población: "); print(table(poblacion$ciudad))
+cat("\n")
 
 # ---------------------------------------------------------------------------
 # 2. Muestra por conveniencia: "los primeros que llegaron"
@@ -41,7 +44,12 @@ cat("Ciudades en la población: "); print(table(poblacion$ciudad))
 #         Pista: head(poblacion, 20) — igual que la demo de clase.
 #         Después de correrlo, mira la composición por ciudad que imprime el
 #         reporte: ¿es un corte al azar? ¿alguna ciudad falta por completo?
-muestra_conv <- NULL
+muestra_conv <- head(poblacion, 20)
+print(muestra_conv)
+
+# al hacer head(poblacion, 20) estoy cayendo en un sesgo de selección, puesto que 
+# al mirar el archivo, me puedo dar cuenta que hay más registros de Quito que de
+# cualquier otra ciudad, si uso head(20) estoy eligiendo solo ver datos de Quito
 
 # ---------------------------------------------------------------------------
 # 3. Muestra aleatoria simple: el sorteo de 20
@@ -49,10 +57,22 @@ muestra_conv <- NULL
 # TODO 2: sortea 20 clientes con la misma probabilidad para todos (20/400 = 5 %).
 #         Pista: poblacion[sample(nrow(poblacion), 20), ] con set.seed(1)
 #         delante para que sea reproducible (sin set.seed cambia cada vez).
+set.seed(1)
+muestra_aas <- poblacion[sample(nrow(poblacion), 20), ]
+print(muestra_aas)
+
 # TODO 3: repite el sorteo con las semillas 2 a 5 y anota las 5 medias en el
 #         informe: la variabilidad de la estimación es parte de la lección.
 #         Pista: for (semilla in 1:5) { set.seed(semilla); ... }
-muestra_aas <- NULL
+
+for (semilla in 1:5) {
+  set.seed(semilla)
+  muestra <- poblacion[sample(nrow(poblacion), 20), ]
+  media_ingresos <- mean(muestra$ingresos_mensuales)
+  media_satisfaccion <- mean(muestra$satisfaccion)
+  cat(sprintf("Semilla %d: media de ingresos = %.2f\n\n", semilla, media_ingresos))
+  cat(sprintf("Semilla %d: media de satisfaccion = %.2f\n\n", semilla, media_satisfaccion))
+}
 
 # ---------------------------------------------------------------------------
 # 4. Muestra estratificada: 5 % dentro de cada ciudad
@@ -62,7 +82,16 @@ muestra_aas <- NULL
 #         Cuenca (20 en total).
 #         Pista: library(dplyr); poblacion |> group_by(ciudad) |> slice_sample(prop = 0.05)
 #         ¿Qué garantiza este diseño que el sorteo simple no garantiza?
-muestra_est <- NULL
+set.seed(1)
+muestra_est <- poblacion |>
+  group_by(ciudad) |>
+  slice_sample(prop = 0.05) |>
+  ungroup()
+
+print(table(muestra_est$ciudad))
+
+# Este diseño nos garantiza que la muestra conserve las proporciones reales de la
+# población para cada estrato, lo que evita que una ciudad salga más que otra por tener mas datos
 
 # ---------------------------------------------------------------------------
 # 5. Comparación final
@@ -70,6 +99,7 @@ muestra_est <- NULL
 reporte("Conveniencia", muestra_conv, parametro)
 reporte("Aleatorio simple", muestra_aas, parametro)
 reporte("Estratificado", muestra_est, parametro)
+cat("\n")
 
 if (!is.null(muestra_conv) && !is.null(muestra_aas) && !is.null(muestra_est)) {
   resumen <- data.frame(
@@ -81,7 +111,7 @@ if (!is.null(muestra_conv) && !is.null(muestra_aas) && !is.null(muestra_est)) {
   )
   cat(sprintf("Parámetro poblacional: %.2f USD\n", parametro))
   print(resumen, row.names = FALSE)
-  cat("Con estas salidas responde en informe.md las preguntas P2 a P5:\n")
+  cat("\nCon estas salidas responde en informe.md las preguntas P2 a P5:\n")
   cat("  P2: ¿cuál diseño quedó más cerca del parámetro y por qué un solo\n")
   cat("      número no basta para declarar un ganador?\n")
   cat("  P3: ¿qué defecto tiene la muestra por conveniencia y cómo lo delata\n")
